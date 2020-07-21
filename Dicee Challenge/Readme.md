@@ -1,1 +1,1 @@
-Basic (HTML + CSS + JS) code to toss to dices and match the numbers present on them.
+--> Basic (HTML + CSS + JS) code to toss two dices and match the numbers present on them.
