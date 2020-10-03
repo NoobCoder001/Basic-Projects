@@ -6,6 +6,13 @@
   const prev = document.getElementById("prev");
   const next = document.getElementById("next");
 
+  let progress = document.getElementById("progress");
+
+  let total_duration = document.getElementById("duration");
+  let total_currentTime = document.getElementById("current_time");
+
+  const progress_div = document.getElementById("progress_div");
+
   const songs = [
     {
         imgname : "img1",
@@ -53,7 +60,7 @@
     isPlaying = false;    //it means that the song was clicked
     music.pause();
     play.classList.replace("fa-pause" , "fa-play");
-    img.classList.add("anime");
+    img.classList.remove("anime");
   }
 
   play.addEventListener("click" , function (event){
@@ -88,6 +95,55 @@
     playMusic();
   }
 
-  next.addEventListener("click" , nextSong);
+  // progress part work
+  music.addEventListener('timeupdate' , function (event){
+     // console.log(event);
 
+     //object destructuring
+     const {currentTime , duration} = event.srcElement;
+
+     // console.log(currentTime);
+     // console.log(duration);
+
+     //progress bar-width dynamically change in css
+     let progress_time = (currentTime / duration) * 100;
+
+     //template literals
+     progress.style.width = `${progress_time}%`;
+
+     //music duration update
+     let min_duration = Math.floor(duration / 60);
+     let sec_duration = Math.floor(duration % 60);
+
+     // console.log(min_duration);
+     //console.log(sec_duration);
+     let tot_duration = `${min_duration}:${sec_duration}`;
+
+     if(duration){
+       total_duration.textContent = `${tot_duration}`;
+     }
+
+     //current duration update
+     let min_currentTime = Math.floor(currentTime / 60);
+     let sec_currentTime = Math.floor(currentTime % 60);
+
+     // console.log(min_duration);
+     //console.log(sec_duration);
+
+     if(sec_currentTime < 10){
+       sec_currentTime = `0${sec_currentTime}`;
+     }
+
+     let tot_currentTime = `${min_currentTime}:${sec_currentTime}`;
+     total_currentTime.textContent = `${tot_currentTime}`;
+
+  });
+
+  // progress onclick function
+  
+
+ //if music end call next song function
+  music.addEventListener("ended" , nextSong);
+
+  next.addEventListener("click" , nextSong);
   prev.addEventListener("click" , prevSong);
