@@ -1,0 +1,339 @@
+<html>
+
+<head>
+    <style>
+        #hero {
+            background: #ff0000;
+            width: 40px;
+            height: 40px;
+            position: absolute;
+        }        
+        
+        #h_health{ 
+            position: absolute; 
+            font-size: 18pt;  
+        }
+
+        #e_health{
+             position: absolute; 
+             font-size: 18pt;
+        }
+
+        #enemy {
+            background: #0a8f20;
+            width: 40px;
+            height: 40px;
+            position: absolute;
+        }
+
+        #background {
+            background: #ffffff;
+            width: 100%;   /*500px;*/
+            height: 100%;  /*500px;*/
+            position: absolute;
+            left: 0px;
+            top: 0px;
+        }
+
+        #laser {
+            background: #000000;
+            width: 50px;
+            height: 2px;
+            position: absolute; 
+        }
+
+        #h_res { 
+            color: #000000;
+            font-size: 25px;
+            left: 600px; 
+            top: 390px;
+            visibility: hidden;   
+            position: absolute;
+        }
+        
+        #game { 
+            color: #000000;
+            font-size: 25px;
+            left: 660px; 
+            top: 200px;
+            position: absolute;
+            visibility: hidden;
+        }
+        #e_res { 
+            color: #000000;
+            font-size: 25px;
+            left: 600px; 
+            top: 416px;
+            position: absolute;
+            visibility: hidden;   
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div id="background"></div>  -->
+    
+    <button style="width: 100px; position: absolute; margin-left: 650px; margin-top: 150px;" onclick="start()">Start Game</button> 
+    
+
+    <h1 style="position: absolute; margin-left: 140px; margin-top: 200px; font-size: 18pt;" id="h_health">P1 Health: 100</h1>
+    <h1 style="position: absolute; margin-left: 1160px;margin-top: 200px; font-size: 18pt;" id="e_health">P2 Health: 100</h1>
+     
+    <div id="hero">
+        <h1 style=" position: relative; text-align: center; margin-top: 4px;">P1</h1>
+    </div> 
+
+    <div id="enemy">
+        <h1 style=" position: relative; text-align: center; margin-top: 4px;">P2</h1>
+    </div>
+    
+    <div id="laser"></div>  
+    <div id="game"> GAME</div>
+    <div id="h_res"></div> 
+    <div id="e_res"></div>
+    <script>
+        var LEFT_KEY = 37;
+        var UP_KEY = 38;
+        var RIGHT_KEY = 39;
+        var DOWN_KEY = 40;
+        var SPACE_KEY = 32;
+        var MOVEMENT = 3;
+
+        var lastLoopRun = 0;
+        
+        var hero_health = 100; 
+        var enemy_health = 100; 
+
+        var controller = new Object();
+
+        var st = false; 
+        
+        var h_won = 0; 
+        var e_won = 0; 
+        
+        var flag = false; 
+        var tot_game = 1;
+
+        function start(){ 
+            st = true; 
+            sp = false;
+        }
+
+        function createSprite(element, x, y, w, h) {
+            var result = new Object();
+            result.element = element;
+            result.x = x;
+            result.y = y;
+            result.w = w;
+            result.h = h;
+            return result;
+        }
+        
+        function toggleKey(keyCode, isPressed) {
+            if (keyCode == LEFT_KEY) {
+                controller.left = isPressed;
+            }
+            if (keyCode == RIGHT_KEY) {
+                controller.right = isPressed;
+            }
+            if (keyCode == UP_KEY) {
+                controller.up = isPressed;
+            }
+            if (keyCode == DOWN_KEY) {
+                controller.down = isPressed;
+            }
+            if (keyCode == SPACE_KEY) {
+                controller.space = isPressed;
+            }
+        }
+        
+        function ensureBounds(sprite) {
+            if (sprite.x < 20) {
+                sprite.x = 20;
+            }
+            if (sprite.y < 20) {
+                sprite.y = 20;
+            }
+            if (sprite.x + sprite.w > 480) {
+                sprite.x = 480 - sprite.w;
+            }
+            if (sprite.y + sprite.h > 480) {
+                sprite.y = 480 - sprite.h;
+            }
+        }
+        
+        function setPosition(sprite) {
+            var e = document.getElementById(sprite.element);
+            e.style.left = sprite.x + 'px';
+            e.style.top = sprite.y + 'px';
+        }
+        
+        function handleControls() {
+            if (controller.up) {
+                hero.y -= MOVEMENT; 
+                enemy.y -= MOVEMENT;
+                laser.y -= MOVEMENT;
+            }
+            if (controller.down) {
+                hero.y += MOVEMENT;
+                enemy.y += MOVEMENT;
+                laser.y += MOVEMENT;
+            }
+            if (controller.left) {
+                hero.x -= MOVEMENT;
+                enemy.x -= MOVEMENT;
+                laser.x -= MOVEMENT;
+            }
+            if (controller.right) {
+                hero.x += MOVEMENT;
+                enemy.x += MOVEMENT;
+                laser.x += MOVEMENT;
+            }
+            if (controller.space && laser.y <= -120) {
+                laser.x = hero.x + 55;
+                laser.y = hero.y + 17;
+            }
+            ensureBounds(hero);
+        }
+        
+        function showSprites() {
+            setPosition(hero);
+            setPosition(enemy);
+            setPosition(laser);
+        }
+        
+        function getRandom(maxSize){ 
+            return parseInt(Math.random() * maxSize); 
+        }
+
+        var width = (window.innerWidth > 0) ? window.innerWidth : screen.width; 
+        var direction = true; 
+
+        function updatePositions() { 
+
+            if(direction){
+                if(laser.x + 12 < enemy.x - 50) {
+                  laser.x += 12;  
+                }
+                else{  
+                  direction = false;
+                  laser.x = enemy.x - 75;   
+                 
+                  var temp =getRandom(6);
+                  
+                  if(enemy_health - temp > 0){ 
+                    enemy_health-= temp; 
+                    var healthE = document.getElementById('e_health'); 
+                    healthE.innerHTML = `P2 Health: ${enemy_health}`;                   
+                  }
+                  else{ 
+                     
+                     st = false;
+                     h_won++; 
+                     ///////////////////////////////////////////////////
+                     flag = true;
+                     tot_game++;
+                  }  
+
+
+                }
+            } 
+            else{ 
+
+                if(laser.x - 30 > hero.x + hero.w)
+                laser.x -= 12; 
+                else{ 
+                    direction = true;
+                    laser.x = hero.x + 55;  
+                    
+                    var temp = getRandom(6); 
+
+                    if(hero_health - temp > 0){
+                        hero_health-= temp;  
+                        var healthH = document.getElementById('h_health'); 
+                        healthH.innerHTML = `P1 Health: ${hero_health}`;                    
+                    }else{ 
+                        st = false;
+                        e_won++;
+                        ///////////////////////////////////////////////////
+                        flag = true; 
+                        tot_game++;
+                    }
+                      
+                }
+            }
+        }
+
+            function loop() {
+            if (h_won<3 && e_won<3 && tot_game<6) {
+                
+                if(st)
+                {   
+                    flag = false;
+                    updatePositions();
+                    controller.space = true; 
+
+                    document.getElementById('h_res').style.visibility ='hidden';
+                    document.getElementById('e_res').style.visibility ='hidden';
+                    document.getElementById('game').style.visibility ='visible';
+                } else if(flag){  
+                    
+                    st = false;
+                    laser.x = 0; 
+                    laser.y = -120; 
+                    hero_health = 100; 
+                    enemy_health = 100; 
+
+                    document.getElementById('h_health').innerHTML = 'P1 Health: 100'; 
+                    document.getElementById('e_health').innerHTML = 'P2 Health: 100';      
+                    
+                    document.getElementById('h_res').innerHTML =  `Player 1 - Won: ${h_won}`; 
+                    document.getElementById('e_res').innerHTML =  `Player 2 - Won: ${e_won}`;
+                    document.getElementById('h_res').style.visibility = 'visible';
+                    document.getElementById('e_res').style.visibility = 'visible';
+                }
+                
+                handleControls();
+                showSprites(); 
+               
+                if(!flag)
+                document.getElementById('game').innerHTML = `GAME ${tot_game}`;
+               } 
+               else{ 
+                    document.getElementById('h_res').innerHTML =  `Player 1 - Won: ${h_won}`; 
+                    document.getElementById('e_res').innerHTML =  `Player 2 - Won: ${e_won}`;
+                    document.getElementById('h_res').style.visibility = 'visible';
+                    document.getElementById('e_res').style.visibility = 'visible'; 
+                    
+                    if(h_won > e_won)
+                    document.getElementById('game').innerHTML = 'Player 1 won the match!';
+                    else
+                    document.getElementById('game').innerHTML = 'Player 2 won the match!';    
+               }
+
+               setTimeout('loop();', 20);
+
+            }
+        
+        document.onkeydown = function (evt) {
+            toggleKey(evt.keyCode, true);
+        };
+
+        document.onkeyup = function (evt) {
+            toggleKey(evt.keyCode, false);
+        };
+
+        
+
+        var hero = createSprite('hero', 200, 460, 20, 20);
+        var enemy = createSprite('enemy', width - 300, 460, 20, 20);
+        var laser = createSprite('laser', 0, -120, 2, 50);
+        console.log(width); 
+      
+
+        loop(); 
+
+    </script>
+</body>
+
+</html>
